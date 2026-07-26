@@ -11,7 +11,6 @@ class CaseAudit {
         $this->db = Database::getInstance();
     }
 
-    /** Create one completed audit and return its id. */
     public function create(array $data): int {
         $stmt = $this->db->prepare(
             "INSERT INTO case_audits
@@ -33,7 +32,6 @@ class CaseAudit {
         return (int) $this->db->lastInsertId();
     }
 
-    /** History for one agent, most recent first — feeds the "Case Audit Logs" table. */
     public function forAgent(int $agentId): array {
         $stmt = $this->db->prepare(
             "SELECT ca.*, u.name AS agent_name, u.email AS agent_email,
@@ -57,7 +55,6 @@ class CaseAudit {
         return $rows;
     }
 
-    /** Latest score + running average for an agent — feeds "Avg Note" / "Last Note" in the header. */
     public function statsForAgent(int $agentId): array {
         $stmt = $this->db->prepare(
             "SELECT AVG(score) AS avg_score,
@@ -85,8 +82,6 @@ class CaseAudit {
         $questions = $questionField ? (json_decode($row[$questionField] ?? '[]', true) ?? []) : [];
         unset($row['desk_call_questions'], $row['desk_case_questions'], $row['desk_chat_questions']);
 
-        // One entry per answered question: the question text, Yes/No, and any
-        // comment the auditor left — this is what the agent sees per assessment.
         $breakdown = [];
         foreach ($row['answers'] as $qKey => $value) {
             $index = (int) str_replace('q', '', $qKey);

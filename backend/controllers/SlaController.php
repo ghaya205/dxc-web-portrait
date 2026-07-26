@@ -12,11 +12,7 @@ use Firebase\JWT\Key;
 
 class SlaController extends Controller {
 
-    // ---------------------------------------------------------------
-    // Imports (admin only)
-    // ---------------------------------------------------------------
-
-    /** POST /sla/import-targets  (multipart form, field name: file) */
+   
     public function importTargets(): void {
         $this->requireAdmin();
 
@@ -32,7 +28,7 @@ class SlaController extends Controller {
         }
     }
 
-    /** POST /sla/import-data  (multipart form, field name: file) */
+    
     public function importData(): void {
         $this->requireAdmin();
 
@@ -48,23 +44,19 @@ class SlaController extends Controller {
         }
     }
 
-    // ---------------------------------------------------------------
-    // Reference data
-    // ---------------------------------------------------------------
-
-    /** GET /sla/companies */
+    
     public function companies(): void {
         $this->requireAuth();
         $this->json(['companies' => (new Company())->all()]);
     }
 
-    /** GET /sla/targets — admin only: list all queues/SLA targets for the manager table */
+    
     public function targets(): void {
         $this->requireAdmin();
         $this->json(['targets' => (new SlaTarget())->all()]);
     }
 
-    /** POST /sla/targets — admin only: create or update a single queue's SLA target ("Add Queue") */
+  
     public function saveTarget(): void {
         $this->requireAdmin();
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -81,7 +73,6 @@ class SlaController extends Controller {
         }
     }
 
-    /** POST /sla/targets/delete — admin only: body { id } */
     public function deleteTarget(): void {
         $this->requireAdmin();
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -93,7 +84,6 @@ class SlaController extends Controller {
         $this->json(['message' => 'Queue deleted']);
     }
 
-    /** POST /sla/link-desk-company — admin only: body { desk_id, company_id|null } */
     public function linkDeskCompany(): void {
         $this->requireAdmin();
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -106,11 +96,7 @@ class SlaController extends Controller {
         $this->json(['message' => 'Desk linked']);
     }
 
-    // ---------------------------------------------------------------
-    // Dashboards
-    // ---------------------------------------------------------------
-
-    /** GET /sla/dashboard?company_id=&date_from=&date_to= — admin: everything (optionally scoped) */
+   
     public function adminDashboard(): void {
         $decoded = $this->requireAuth();
         if ((int) $decoded->role_id !== 3) {
@@ -131,7 +117,6 @@ class SlaController extends Controller {
         $this->json($dashboard);
     }
 
-    /** GET /sla/dashboard/mine — supervisor: auto-scoped to their desk's company */
     public function supervisorDashboard(): void {
         $decoded = $this->requireAuth();
         if ((int) $decoded->role_id !== 2) {
@@ -161,30 +146,15 @@ class SlaController extends Controller {
         $this->json($dashboard);
     }
 
-    // ---------------------------------------------------------------
-    // Real-time (SSE)
-    // ---------------------------------------------------------------
-
-    /**
-     * GET /sla/stream?token=...&company_id=&date_from=&date_to=&desk_name=
-     * Server-Sent Events: pushes a fresh dashboard payload whenever new rows
-     * land in sla_data, without the client needing to poll or reload.
-     *
-     * Token is read from the query string (not the Authorization header)
-     * because the browser's EventSource API cannot send custom headers.
-     */
+ 
     public function stream(): void {
-        // Never let PHP kill this connection on its own — the client controls
-        // when to disconnect (closing the tab / navigating away).
+        
         set_time_limit(0);
         ignore_user_abort(true);
 
         $decoded = $this->requireAuthFromQuery();
 
-        // implicit_flush can be toggled at runtime (unlike output_buffering,
-        // which needs the .htaccess/php.ini setting) — belt-and-braces so
-        // every echo below reaches the browser immediately instead of sitting
-        // in PHP's internal buffer.
+        
         @ini_set('implicit_flush', '1');
         ob_implicit_flush(true);
         if (function_exists('apache_setenv')) {
@@ -198,7 +168,6 @@ class SlaController extends Controller {
 
         $role = (int) $decoded->role_id;
         if ($role === 2) {
-            // Supervisor: force-scope to their own desk's company, same rule as /sla/dashboard/mine.
             $user = (new User())->findById((int) $decoded->sub);
             $desk = $user && !empty($user['desk_id']) ? (new Desk())->find((int) $user['desk_id']) : null;
             if (!$desk || empty($desk['company_id'])) {
@@ -211,20 +180,19 @@ class SlaController extends Controller {
 
         header('Content-Type: text/event-stream');
         header('Cache-Control: no-cache');
-        header('X-Accel-Buffering: no'); // in case a reverse proxy sits in front and buffers
+        header('X-Accel-Buffering: no'); 
         header('Connection: keep-alive');
         while (ob_get_level() > 0) { ob_end_flush(); }
 
         $slaModel = new SlaData();
-        $lastMaxId = -1; // force an immediate first push
+        $lastMaxId = -1; 
         $started = time();
 
         while (true) {
             if (connection_aborted()) {
                 break;
             }
-            // Safety cutoff: ask the browser to reconnect after an hour rather
-            // than holding one PHP worker/process open forever.
+         
             if (time() - $started > 3600) {
                 echo "event: reconnect\ndata: {}\n\n";
                 @ob_flush(); @flush();
@@ -243,7 +211,6 @@ class SlaController extends Controller {
                 echo "event: sla_update\n";
                 echo 'data: ' . json_encode($dashboard) . "\n\n";
             } else {
-                // Comment ping keeps the connection alive through proxies/timeouts.
                 echo ": keep-alive\n\n";
             }
 
@@ -253,11 +220,7 @@ class SlaController extends Controller {
         }
     }
 
-    /**
-     * Queues currently breaching their SLA target — what image/spec calls
-     * "un ticket franchit un seuil de SLA" (answer rate below target, or
-     * abandon rate above target).
-     */
+   
     private function detectBreaches(array $rows): array {
         $breaches = [];
         foreach ($rows as $row) {
@@ -295,10 +258,6 @@ class SlaController extends Controller {
         }
     }
 
-    // ---------------------------------------------------------------
-    // Aggregation helper (queue rows -> desk -> company -> overview)
-    // ---------------------------------------------------------------
-
     private function buildDashboard(array $rows): array {
         $companies = [];
         $overall   = $this->emptyBucket();
@@ -327,7 +286,6 @@ class SlaController extends Controller {
             $companies[$companyName]['desks'][$deskName]['queues'][] = $this->rateSummary($queueBucket, $row['queue_name']);
         }
 
-        // Finalize rates + find best performers.
         $companyList = [];
         foreach ($companies as $company) {
             $deskList = [];
@@ -372,11 +330,7 @@ class SlaController extends Controller {
         if ($row['target_abd_rate'] !== null) { $bucket['target_abd_sum'] += (float) $row['target_abd_rate']; }
     }
 
-    /**
-     * Turns raw sums into the rates shown on screen.
-     * ans_rate  = answered in SLA / (offered - abandoned in SLA)
-     * abd_rate  = 1 - ((abandoned - abandoned in SLA) / offered)   [SLA compliance on abandonment]
-     */
+  
     private function rateSummary(array $bucket, string $name, array $children = []): array {
         $offered  = $bucket['offered'];
         $ansDenom = $offered - $bucket['abandoned_in_sla'];
@@ -406,7 +360,6 @@ class SlaController extends Controller {
         ];
     }
 
-    /** Picks the "Total Handled / Best Answer Rate / Highest Volume / Fastest Response ..." style highlights. */
     private function highlights(array $companyList): array {
         $flat = [];
         foreach ($companyList as $c) {
@@ -435,7 +388,6 @@ class SlaController extends Controller {
         ];
     }
 
-    // ---------------------------------------------------------------
 
     private function requireAdmin(): object {
         $decoded = $this->requireAuth();

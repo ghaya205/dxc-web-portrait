@@ -27,7 +27,6 @@ class Company {
         return $stmt->fetch();
     }
 
-    /** Get existing company id by name, or create it. */
     public function firstOrCreate(string $name): int {
         $existing = $this->findByName($name);
         if ($existing) return (int) $existing['id'];

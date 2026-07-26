@@ -10,14 +10,9 @@ use Firebase\JWT\Key;
 
 class CaseAuditController extends Controller {
 
-    /** Score below this triggers an automatic coaching note shown to the agent. */
     private const COACHING_THRESHOLD = 70.0;
 
-    /**
-     * GET /case-audits/lookup-agent?email=...
-     * Loads an agent by email plus their desk's question sets for the QA form.
-     * Supervisors/admins only.
-     */
+   
     public function lookupAgent(): void {
         $decoded = $this->requireAuth();
         if (!in_array((int) $decoded->role_id, [2, 3], true)) {
@@ -63,7 +58,6 @@ class CaseAuditController extends Controller {
         ]);
     }
 
-    /** POST /case-audits — "CONFIRM CASE" button. Only supervisors/admins can audit. */
     public function create(): void {
         $decoded = $this->requireAuth();
         if (!in_array((int) $decoded->role_id, [2, 3], true)) {
@@ -87,8 +81,7 @@ class CaseAuditController extends Controller {
             $this->json(['error' => 'Agent not found'], 404);
         }
 
-        // Answers are Yes/No (1/0). A "No" on any eliminator question fails the
-        // whole assessment outright, matching the paper form's "ELIMINATOR" flag.
+       
         $eliminatorFailed = !empty($data['eliminator_failed']);
         $score = $eliminatorFailed ? 0.0 : $this->computeScore($answers, $data['weights'] ?? []);
 
@@ -119,7 +112,6 @@ class CaseAuditController extends Controller {
         ], 201);
     }
 
-    /** GET /case-audits/mine — an agent viewing their own assessment history/coaching notes. */
     public function mine(): void {
         $decoded = $this->requireAuth();
         if ((int) $decoded->role_id !== 1) {
@@ -133,7 +125,6 @@ class CaseAuditController extends Controller {
         ]);
     }
 
-    /** GET /case-audits?agent_id=123 — feeds the "Case Audit Logs" history table. */
     public function forAgent(): void {
         $this->requireAuth();
 
@@ -149,7 +140,6 @@ class CaseAuditController extends Controller {
         ]);
     }
 
-    /** GET /case-audits/export?agent_id=123 — "Export Case CSV" button. */
     public function exportForAgent(): void {
         $this->requireAuth();
 
@@ -183,14 +173,13 @@ class CaseAuditController extends Controller {
         exit;
     }
 
-    /** Percentage score = sum of (Yes=1/No=0 answers) weighted, over max possible. */
     private function computeScore(array $answers, array $weights): float {
         $total = 0;
         $max   = 0;
         foreach ($answers as $qKey => $value) {
             $weight = (float) ($weights[$qKey] ?? 1);
             $total += ((float) $value) * $weight;
-            $max   += 1 * $weight; // answers are binary (Yes=1 / No=0)
+            $max   += 1 * $weight; 
         }
         return $max > 0 ? round(($total / $max) * 100, 2) : 0.0;
     }

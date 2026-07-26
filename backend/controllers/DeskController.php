@@ -81,9 +81,7 @@ class DeskController extends Controller {
             'chat_questions' => $data['chat_questions'] ?? [],
         ];
 
-        // Only touch company_id if the caller actually sent it (e.g. the SLA Queues
-        // "link desks to companies" page). This keeps the Desk management form from
-        // wiping out the SLA company link just because it no longer sends this field.
+        
         if (array_key_exists('company_id', $data)) {
             $updateData['company_id'] = !empty($data['company_id']) ? (int) $data['company_id'] : null;
         }

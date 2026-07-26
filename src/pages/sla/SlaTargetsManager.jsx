@@ -39,7 +39,7 @@ export default function SlaTargetsManager({ token, onChanged }) {
     if (t.targets) setTargets(t.targets);
   }
 
-  useEffect(() => { loadAll(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { loadAll(); }, []); 
 
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }));

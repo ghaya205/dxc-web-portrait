@@ -56,10 +56,7 @@ class Desk {
     }
 
     public function update(int $id, array $data): bool {
-        // company_id is only ever touched when the caller explicitly passes it
-        // (e.g. the SLA Queues "link desks to companies" page). Otherwise we keep
-        // whatever is currently in the DB, so editing a desk elsewhere (e.g. the
-        // Desk management form) can never silently clear the SLA company link.
+       
         if (array_key_exists('company_id', $data)) {
             $companyId = $data['company_id'] ?: null;
         } else {
@@ -84,7 +81,6 @@ class Desk {
         ]);
     }
 
-    /** Partial update — only touches company_id, leaves everything else on the desk untouched. */
     public function linkCompany(int $id, ?int $companyId): bool {
         $stmt = $this->db->prepare("UPDATE desks SET company_id = ? WHERE id = ?");
         return $stmt->execute([$companyId, $id]);

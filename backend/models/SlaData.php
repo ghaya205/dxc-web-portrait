@@ -83,9 +83,9 @@ class SlaData {
    
     private static function avgDuration(string $alias, string $column): string {
         $c = "$alias." . self::col($column);
-        $threePartSeconds = "TIME_TO_SEC($c)"; // safe: H:MM:SS / HH:MM:SS
-        $twoPartSeconds   = "(SUBSTRING_INDEX($c, ':', 1) * 60 + SUBSTRING_INDEX($c, ':', -1))"; // M:SS as minutes:seconds
-        $barSeconds       = "CAST(NULLIF($c, '') AS UNSIGNED)"; // plain seconds, no colon
+        $threePartSeconds = "TIME_TO_SEC($c)"; 
+        $twoPartSeconds   = "(SUBSTRING_INDEX($c, ':', 1) * 60 + SUBSTRING_INDEX($c, ':', -1))"; 
+        $barSeconds       = "CAST(NULLIF($c, '') AS UNSIGNED)"; 
 
         return "AVG(CASE
             WHEN $c IS NULL OR $c = '' THEN NULL
@@ -95,17 +95,11 @@ class SlaData {
         END)";
     }
 
-    /**
-     * Normalizes an incoming CSV date to the exact text format already used by
-     * every historical row in this table: m/d/Y with NO leading zeros
-     * (e.g. "2/1/2025", "7/15/2026") — never zero-padded ("02/01/2025" would
-     * NOT match existing rows). Keeping one single format across old and new
-     * imports is what lets STR_TO_DATE(..., '%c/%e/%Y') parse the whole table.
-     */
+
     private static function toDbDate(?string $raw): ?string {
         if (!$raw) return null;
         $ts = strtotime(trim($raw));
-        return $ts ? date('n/j/Y', $ts) : null; // n and j are PHP's no-leading-zero month/day specifiers
+        return $ts ? date('n/j/Y', $ts) : null; 
     }
 
    
@@ -197,8 +191,7 @@ class SlaData {
         $where  = [];
         $params = [];
 
-        // d.StartDate is stored as text in m/d/Y form, no leading zeros
-        // (e.g. "2/1/2025", "7/15/2026") — matches every row, old and new.
+        
         if ($dateFrom) { $where[] = "STR_TO_DATE(d.StartDate, '%c/%e/%Y') >= ?"; $params[] = $dateFrom; }
         if ($dateTo)   { $where[] = "STR_TO_DATE(d.StartDate, '%c/%e/%Y') <= ?"; $params[] = $dateTo; }
         if ($companyId) { $where[] = 't.company_id = ?'; $params[] = $companyId; }
@@ -261,16 +254,12 @@ class SlaData {
         return $stmt->fetchAll();
     }
 
-    /** Latest row id in sla_data — used by the SSE stream to detect new imports without reloading everything. */
     public function getMaxId(): int {
         $stmt = $this->db->query("SELECT COALESCE(MAX(id), 0) FROM sla_data");
         return (int) $stmt->fetchColumn();
     }
 
-    /**
-     * Daily totals (handled vs abandoned) for the "courbe" trend chart.
-     * Same filters as getQueueAggregates, grouped by calendar date instead of queue.
-     */
+  
     public function getDailySeries(?string $dateFrom, ?string $dateTo, ?int $companyId = null, ?string $deskName = null): array {
         $where  = [];
         $params = [];
@@ -302,12 +291,7 @@ class SlaData {
         return $stmt->fetchAll();
     }
 
-    /**
-     * Hour-of-day breakdown (0-23) for a single day — powers the Real Time
-     * "trend over the last 24h" line chart and the "abandonment by hour" heatmap.
-     * StartTime is stored as free text like "07:00" / "07:00:00"; the hour is
-     * the piece before the first colon.
-     */
+  
     public function getHourlySeries(string $date, ?int $companyId = null, ?string $deskName = null): array {
         $where  = ["STR_TO_DATE(d.StartDate, '%c/%e/%Y') = ?"];
         $params = [$date];
