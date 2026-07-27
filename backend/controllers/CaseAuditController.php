@@ -2,6 +2,7 @@
 namespace Controllers;
 
 use Core\Controller;
+use Core\BrevoMailer;
 use Models\CaseAudit;
 use Models\Desk;
 use Models\User;
@@ -12,7 +13,6 @@ class CaseAuditController extends Controller {
 
     private const COACHING_THRESHOLD = 70.0;
 
-   
     public function lookupAgent(): void {
         $decoded = $this->requireAuth();
         if (!in_array((int) $decoded->role_id, [2, 3], true)) {
@@ -81,7 +81,6 @@ class CaseAuditController extends Controller {
             $this->json(['error' => 'Agent not found'], 404);
         }
 
-       
         $eliminatorFailed = !empty($data['eliminator_failed']);
         $score = $eliminatorFailed ? 0.0 : $this->computeScore($answers, $data['weights'] ?? []);
 
@@ -104,12 +103,56 @@ class CaseAuditController extends Controller {
             'wfe_result'      => $data['wfe_result']      ?? null,
         ]);
 
+        $this->notifyAgentByEmail($agent, $assessmentType, $score, $data['ticket_ref'] ?? null, $score < self::COACHING_THRESHOLD);
+
         $this->json([
             'message'        => 'Case confirmed',
             'id'             => $id,
             'score'          => $score,
             'needs_coaching' => $score < self::COACHING_THRESHOLD,
         ], 201);
+    }
+
+    private function notifyAgentByEmail(array $agent, string $assessmentType, float $score, ?string $ticketRef, bool $needsCoaching): void {
+        if (empty($agent['email'])) return;
+
+        $mailer = new BrevoMailer();
+        if (!$mailer->isConfigured()) return;
+
+        $typeLabel = match ($assessmentType) {
+            'call' => 'Appel (Call)',
+            'case' => 'Dossier (Case)',
+            'chat' => 'Chat',
+            default => ucfirst($assessmentType),
+        };
+
+        $subject = 'DXC Tunisie - Nouvelle évaluation qualité disponible';
+        $text = "Bonjour {$agent['name']},\n\n"
+            . "Une nouvelle évaluation qualité ({$typeLabel}) vient d'être enregistrée pour vous, avec un score de {$score}%.\n"
+            . "Merci de vous connecter à la plateforme pour consulter le détail.";
+
+        $coachingLine = $needsCoaching
+            ? '<p style="color:#b02a2a;"><strong>Ce score est en dessous du seuil requis. Une session de coaching sera planifiée.</strong></p>'
+            : '<p style="color:#1b7a3d;"><strong>Bon résultat, continuez ainsi !</strong></p>';
+
+        $html = <<<HTML
+        <div style="font-family:Arial,sans-serif;color:#222;">
+            <h2 style="color:#004b8d;">Nouvelle évaluation qualité — DXC Tunisie</h2>
+            <p>Bonjour {$agent['name']},</p>
+            <p>Une nouvelle évaluation <strong>{$typeLabel}</strong> vient d'être enregistrée pour vous
+            {$this->ticketLine($ticketRef)}.</p>
+            <p><strong>Score obtenu :</strong> {$score}%</p>
+            {$coachingLine}
+            <p>Merci de vous connecter à la plateforme pour consulter le détail complet de l'évaluation (questions, réponses, commentaires de l'auditeur).</p>
+            <p style="margin-top:16px;font-size:12px;color:#777;">Email généré automatiquement par la plateforme DXC Tunisie.</p>
+        </div>
+        HTML;
+
+        $mailer->send($agent['email'], $subject, $text, $html);
+    }
+
+    private function ticketLine(?string $ticketRef): string {
+        return $ticketRef ? "(ticket <strong>{$ticketRef}</strong>)" : '';
     }
 
     public function mine(): void {

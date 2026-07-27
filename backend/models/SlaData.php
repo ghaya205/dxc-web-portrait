@@ -4,7 +4,6 @@ namespace Models;
 use Core\Database;
 use PDO;
 
-
 class SlaData {
     private PDO $db;
 
@@ -80,7 +79,6 @@ class SlaData {
         return "SUM(CAST(NULLIF($alias." . self::col($column) . ", '') AS UNSIGNED))";
     }
 
-   
     private static function avgDuration(string $alias, string $column): string {
         $c = "$alias." . self::col($column);
         $threePartSeconds = "TIME_TO_SEC($c)"; 
@@ -95,14 +93,12 @@ class SlaData {
         END)";
     }
 
-
     private static function toDbDate(?string $raw): ?string {
         if (!$raw) return null;
         $ts = strtotime(trim($raw));
         return $ts ? date('n/j/Y', $ts) : null; 
     }
 
-   
     public function importCsv(string $filePath): array {
         $handle = fopen($filePath, 'r');
         if (!$handle) throw new \RuntimeException('Could not open uploaded file');
@@ -186,12 +182,10 @@ class SlaData {
         $stmt->execute($values);
     }
 
- 
     public function getQueueAggregates(?string $dateFrom, ?string $dateTo, ?int $companyId = null, ?string $deskName = null): array {
         $where  = [];
         $params = [];
 
-        
         if ($dateFrom) { $where[] = "STR_TO_DATE(d.StartDate, '%c/%e/%Y') >= ?"; $params[] = $dateFrom; }
         if ($dateTo)   { $where[] = "STR_TO_DATE(d.StartDate, '%c/%e/%Y') <= ?"; $params[] = $dateTo; }
         if ($companyId) { $where[] = 't.company_id = ?'; $params[] = $companyId; }
@@ -259,7 +253,6 @@ class SlaData {
         return (int) $stmt->fetchColumn();
     }
 
-  
     public function getDailySeries(?string $dateFrom, ?string $dateTo, ?int $companyId = null, ?string $deskName = null): array {
         $where  = [];
         $params = [];
@@ -291,7 +284,6 @@ class SlaData {
         return $stmt->fetchAll();
     }
 
-  
     public function getHourlySeries(string $date, ?int $companyId = null, ?string $deskName = null): array {
         $where  = ["STR_TO_DATE(d.StartDate, '%c/%e/%Y') = ?"];
         $params = [$date];

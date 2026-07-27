@@ -78,6 +78,7 @@ class User {
     public function updateFullProfile(int $id, array $data): bool {
         $fields = [
             'name', 'national_id', 'phone', 'address', 'governorate',
+            'latitude', 'longitude',
             'marital_status', 'child_number', 'title', 'desk_id',
             'technical_skills', 'diplomas', 'certifications', 'skills',
             'manager_name', 'hr_manager_name', 'language', 'shift',
@@ -140,7 +141,6 @@ class User {
         return (int) $this->db->lastInsertId();
     }
 
- 
     public function getAllUsers(): array {
         $stmt = $this->db->prepare(
             "SELECT u.id,
@@ -190,6 +190,28 @@ class User {
              JOIN roles r ON r.id = u.role_id
              WHERE u.is_approved = 1 AND u.role_id = 1 AND u.desk_id = ?
              ORDER BY u.name ASC"
+        );
+        $stmt->execute([$deskId]);
+        return $stmt->fetchAll();
+    }
+
+    public function getAllAgentsForTransport(): array {
+        $stmt = $this->db->query(
+            "SELECT u.id, u.name, u.email, u.address, u.governorate, u.latitude, u.longitude, d.name AS desk_name
+             FROM users u
+             LEFT JOIN desks d ON d.id = u.desk_id
+             WHERE u.is_approved = 1 AND u.role_id = 1
+             ORDER BY u.name ASC"
+        );
+        return $stmt->fetchAll();
+    }
+
+    public function getDeskAgentsForTransport(int $deskId): array {
+        $stmt = $this->db->prepare(
+            "SELECT id, name, email, address, governorate, latitude, longitude
+             FROM users
+             WHERE is_approved = 1 AND role_id = 1 AND desk_id = ?
+             ORDER BY name ASC"
         );
         $stmt->execute([$deskId]);
         return $stmt->fetchAll();

@@ -20,7 +20,6 @@ export default function Home() {
         <h1>Welcome, {user?.name}!</h1>
         <p>DXC Internship</p>
   
-
         </div>
       </div>
   

@@ -1,0 +1,19 @@
+CREATE DATABASE IF NOT EXISTS dxcdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE dxcdb;
+
+CREATE TABLE IF NOT EXISTS roles (
+  id   INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL UNIQUE
+);
+
+INSERT IGNORE INTO roles (id, name) VALUES (1, 'agent'), (2, 'supervisor'), (3, 'admin');
+
+CREATE TABLE IF NOT EXISTS users (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  name       VARCHAR(150) NOT NULL,
+  email      VARCHAR(255) NOT NULL UNIQUE,
+  password   VARCHAR(255) NOT NULL,
+  role_id    INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (role_id) REFERENCES roles(id)
+);

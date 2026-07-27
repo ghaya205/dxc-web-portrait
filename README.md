@@ -58,7 +58,62 @@ stage-mvc/
 
 ---
 
-## Setup
+---
+
+## Run everything with Docker (recommended, no XAMPP needed)
+
+This spins up MySQL, the PHP/Apache backend, and the React frontend (built and served by nginx) together.
+
+### 1. Requirements
+- Docker Desktop (or Docker Engine + Docker Compose plugin)
+
+### 2. Start it
+```bash
+docker compose up --build
+```
+
+First run takes a bit longer (npm install + composer install + MySQL init). Subsequent runs are fast.
+
+### 3. Access the app
+| Service | URL |
+|---|---|
+| Frontend (the app) | http://localhost:8081 |
+| Backend API directly | http://localhost:8080 |
+| phpMyAdmin | http://localhost:8082 (user: `root`, pass: `rootpass`) |
+| MySQL (external tools) | `localhost:3306` (user: `dxcuser` / pass: `dxcpass`, or `root` / `rootpass`) |
+
+The frontend container proxies all `/api/*` calls to the backend container automatically — you don't need to touch `src/services/api.js`.
+
+### 4. Database
+On first start, MySQL automatically runs everything in `docker/mysql-init/` in order: it creates the `dxcdb` database, the base `roles`/`users` tables, then all migrations `001` → `008`. You don't need to run `setup_*.php` scripts manually.
+
+The big historical dataset `sla_data.sql` (57MB) is **not** imported automatically (would slow down every fresh start). Import it manually once, if you need it:
+```bash
+docker exec -i dxc_db mysql -uroot -prootpass dxcdb < sla_data.sql
+```
+
+### 5. Environment variables
+Edit `.env` at the project root (Brevo API key, JWT secret, taxi/bus company emails). The backend container reads it automatically — restart the backend after changing it:
+```bash
+docker compose restart backend
+```
+
+### 6. Rebuilding after code changes
+- **Backend** (PHP): changes are picked up instantly, no rebuild needed (`./backend` is mounted as a live volume).
+- **Frontend** (React): since it's built once into static files by nginx, rebuild after changes:
+```bash
+docker compose up --build frontend
+```
+
+### 7. Stopping / resetting
+```bash
+docker compose down          # stop everything, keep DB data
+docker compose down -v       # stop everything AND wipe the database
+```
+
+---
+
+## Setup (manual, XAMPP/WAMP)
 
 ### 1. Copy to your web server root
 

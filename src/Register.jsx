@@ -70,7 +70,6 @@ export default function Register() {
 
           <h2>Create Account</h2>
           
-
           {message && <p className="auth-msg-ok"><CheckCircle size={14}/> {message}</p>}
           {error   && <p className="auth-msg-error"><AlertCircle size={14}/> {error}</p>}
 

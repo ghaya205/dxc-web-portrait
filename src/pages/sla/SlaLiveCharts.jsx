@@ -13,7 +13,6 @@ function secs(v) {
   return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
 }
 
-/** Builds a 0..23 hour frame from the raw hourly rows, filling gaps with zeros. */
 function hourFrame(hourly) {
   const byHour = new Map((hourly || []).map((r) => [Number(r.hour), r]));
   return Array.from({ length: 24 }, (_, h) => {
@@ -32,7 +31,6 @@ function hourFrame(hourly) {
   });
 }
 
-/** Flattens the company -> desk -> queue tree into a plain list of queues with volume today. */
 function flattenQueues(companies) {
   const queues = [];
   for (const c of companies || []) {
@@ -45,11 +43,6 @@ function flattenQueues(companies) {
   return queues;
 }
 
-/**
- * "Overall SLA Compliance" — one big number: what share of today's active
- * queues are currently meeting their answer-rate target. A calm gauge instead
- * of a wall of per-account bars.
- */
 export function ComplianceGauge({ companies, title = 'Overall SLA Compliance' }) {
   const queues = flattenQueues(companies).filter((q) => q.meets_answer_target !== null && q.meets_answer_target !== undefined);
   const total = queues.length;
@@ -90,7 +83,6 @@ export function ComplianceGauge({ companies, title = 'Overall SLA Compliance' })
   );
 }
 
-/** "Top 5 Busiest Queues" — simple horizontal bars ranked by volume offered today. */
 export function TopQueuesByVolume({ companies, title = 'Top 5 Busiest Queues' }) {
   const queues = flattenQueues(companies);
   const top = [...queues].sort((a, b) => (b.offered || 0) - (a.offered || 0)).slice(0, 5);
@@ -121,10 +113,6 @@ export function TopQueuesByVolume({ companies, title = 'Top 5 Busiest Queues' })
   );
 }
 
-/**
- * "Answer Rate Trend (Today)" — filled area chart of the answered-within-40s
- * rate across today's hours, with a dashed target line for reference.
- */
 export function AnswerRateTrend({ hourly, targetRate = 0.9, title = 'Answer Rate Trend (Today)' }) {
   const frame = hourFrame(hourly);
   const active = frame.filter((f) => f.offered > 0);
@@ -179,7 +167,6 @@ export function AnswerRateTrend({ hourly, targetRate = 0.9, title = 'Answer Rate
   );
 }
 
-/** "Queues Needing Attention" — a calm list of below-target queues, status dot instead of a red alert block. */
 export function QueuesNeedingAttention({ companies, title = 'Queues Needing Attention' }) {
   const queues = flattenQueues(companies).filter((q) => q.meets_answer_target === false);
   const worst = [...queues].sort((a, b) => (a.answer_rate ?? 1) - (b.answer_rate ?? 1)).slice(0, 5);

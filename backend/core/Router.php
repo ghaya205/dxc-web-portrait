@@ -18,7 +18,6 @@ class Router {
         }
         $uri = '/' . trim($uri, '/') ?: '/';
 
-       
         if ($method === 'OPTIONS') {
             http_response_code(200);
             exit;

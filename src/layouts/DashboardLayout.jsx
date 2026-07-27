@@ -20,7 +20,7 @@ export default function DashboardLayout({ children, pageTitle }) {
           setAvatar(data.profile.profile_picture || null);
         }
       } catch {
-        // Avatar just falls back to initials if this fails.
+        
       }
     }
     loadAvatar();

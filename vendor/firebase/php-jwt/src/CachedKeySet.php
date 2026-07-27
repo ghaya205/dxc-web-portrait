@@ -13,66 +13,35 @@ use Psr\Http\Message\RequestFactoryInterface;
 use RuntimeException;
 use UnexpectedValueException;
 
-/**
- * @implements ArrayAccess<string, Key>
- */
 class CachedKeySet implements ArrayAccess
 {
-    /**
-     * @var string
-     */
+    
     private $jwksUri;
-    /**
-     * @var ClientInterface
-     */
+    
     private $httpClient;
-    /**
-     * @var RequestFactoryInterface
-     */
+    
     private $httpFactory;
-    /**
-     * @var CacheItemPoolInterface
-     */
+    
     private $cache;
-    /**
-     * @var ?int
-     */
+    
     private $expiresAfter;
-    /**
-     * @var ?CacheItemInterface
-     */
+    
     private $cacheItem;
-    /**
-     * @var array<string, array<mixed>>
-     */
+    
     private $keySet;
-    /**
-     * @var string
-     */
+    
     private $cacheKey;
-    /**
-     * @var string
-     */
+    
     private $cacheKeyPrefix = 'jwks';
-    /**
-     * @var int
-     */
+    
     private $maxKeyLength = 64;
-    /**
-     * @var bool
-     */
+    
     private $rateLimit;
-    /**
-     * @var string
-     */
+    
     private $rateLimitCacheKey;
-    /**
-     * @var int
-     */
+    
     private $maxCallsPerMinute = 10;
-    /**
-     * @var string|null
-     */
+    
     private $defaultAlg;
 
     public function __construct(
@@ -94,10 +63,6 @@ class CachedKeySet implements ArrayAccess
         $this->setCacheKeys();
     }
 
-    /**
-     * @param string $keyId
-     * @return Key
-     */
     public function offsetGet($keyId): Key
     {
         if (!$this->keyIdExists($keyId)) {
@@ -106,35 +71,21 @@ class CachedKeySet implements ArrayAccess
         return JWK::parseKey($this->keySet[$keyId], $this->defaultAlg);
     }
 
-    /**
-     * @param string $keyId
-     * @return bool
-     */
     public function offsetExists($keyId): bool
     {
         return $this->keyIdExists($keyId);
     }
 
-    /**
-     * @param string $offset
-     * @param Key $value
-     */
     public function offsetSet($offset, $value): void
     {
         throw new LogicException('Method not implemented');
     }
 
-    /**
-     * @param string $offset
-     */
     public function offsetUnset($offset): void
     {
         throw new LogicException('Method not implemented');
     }
 
-    /**
-     * @return array<mixed>
-     */
     private function formatJwksForCache(string $jwks): array
     {
         $jwks = json_decode($jwks, true);
@@ -160,12 +111,11 @@ class CachedKeySet implements ArrayAccess
     {
         if (null === $this->keySet) {
             $item = $this->getCacheItem();
-            // Try to load keys from cache
+            
             if ($item->isHit()) {
-                // item found! retrieve it
+                
                 $this->keySet = $item->get();
-                // If the cached item is a string, the JWKS response was cached (previous behavior).
-                // Parse this into expected format array<kid, jwk> instead.
+                
                 if (\is_string($this->keySet)) {
                     $this->keySet = $this->formatJwksForCache($this->keySet);
                 }
@@ -247,13 +197,10 @@ class CachedKeySet implements ArrayAccess
             throw new RuntimeException('JWKS URI is empty');
         }
 
-        // ensure we do not have illegal characters
         $key = preg_replace('|[^a-zA-Z0-9_\.!]|', '', $this->jwksUri);
 
-        // add prefix
         $key = $this->cacheKeyPrefix . $key;
 
-        // Hash keys if they exceed $maxKeyLength of 64
         if (\strlen($key) > $this->maxKeyLength) {
             $key = substr(hash('sha256', $key), 0, $this->maxKeyLength);
         }
@@ -261,10 +208,9 @@ class CachedKeySet implements ArrayAccess
         $this->cacheKey = $key;
 
         if ($this->rateLimit) {
-            // add prefix
+            
             $rateLimitKey = $this->cacheKeyPrefix . 'ratelimit' . $key;
 
-            // Hash keys if they exceed $maxKeyLength of 64
             if (\strlen($rateLimitKey) > $this->maxKeyLength) {
                 $rateLimitKey = substr(hash('sha256', $rateLimitKey), 0, $this->maxKeyLength);
             }

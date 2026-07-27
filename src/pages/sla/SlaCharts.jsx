@@ -24,10 +24,6 @@ function fmtPct(v) {
   return `${(v * 100).toFixed(1)}%`;
 }
 
-/**
- * Donut chart ("camembert") for a fixed set of {label, value, color} segments.
- * Shows a center total and a compact legend with per-segment percentages.
- */
 export function DonutChart({ title, segments, size = 132, centerLabel }) {
   const total = segments.reduce((s, seg) => s + (seg.value || 0), 0);
   const r = size / 2;
@@ -77,10 +73,6 @@ export function DonutChart({ title, segments, size = 132, centerLabel }) {
   );
 }
 
-/**
- * Grouped bar chart ("rectangles") — two bars per group (e.g. Handled vs Abandoned),
- * one group per year / month / week / day depending on the caller's chosen granularity.
- */
 export function BarChart({ groups, seriesA, seriesB, height = 220 }) {
   const width = 640;
   const padL = 40, padR = 12, padT = 16, padB = 26;

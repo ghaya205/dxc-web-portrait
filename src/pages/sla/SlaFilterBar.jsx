@@ -1,10 +1,5 @@
 import { RefreshCw } from 'lucide-react';
 
-// --------------------------------------------------------------------
-// Helpers to turn Year / Month / Week / Day picks into a date_from/date_to
-// range the backend already understands.
-// --------------------------------------------------------------------
-
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -16,7 +11,6 @@ function daysInMonth(year, monthIndex) {
   return new Date(year, monthIndex + 1, 0).getDate();
 }
 
-/** Splits a month into Week 1..N (7-day chunks) for the "Weeks" filter. */
 export function weeksInMonth(year, monthIndex) {
   const total = daysInMonth(year, monthIndex);
   const weeks = [];
@@ -31,7 +25,6 @@ export function weeksInMonth(year, monthIndex) {
   return weeks;
 }
 
-/** Builds { dateFrom, dateTo } (YYYY-MM-DD) from the filter state, or nulls for "All". */
 export function computeDateRange({ year, month, week, dayNum }) {
   if (year && month !== '' && dayNum) {
     const y = Number(year);
@@ -79,7 +72,7 @@ export default function SlaFilterBar({
 }) {
   function set(field, value) {
     const next = { ...filters, [field]: value };
-    // Reset dependent fields when a parent changes.
+    
     if (field === 'year') { next.month = ''; next.week = ''; next.dayNum = ''; }
     if (field === 'month') { next.week = ''; next.dayNum = ''; }
     if (field === 'week') { next.dayNum = ''; }
@@ -167,14 +160,6 @@ export function emptyFilters() {
   return { year: '', month: '', week: '', day: '', dayNum: '', deskName: '', companyId: '' };
 }
 
-/**
- * Buckets the raw daily series (from the backend) into groups for the bar chart,
- * choosing the granularity from what's currently selected:
- *   nothing picked      -> one bar-group per YEAR
- *   year picked         -> one bar-group per MONTH (Jan..Dec of that year)
- *   year + month picked -> one bar-group per WEEK of that month
- *   + week picked too   -> one bar-group per DAY of that week
- */
 export function groupSeriesForChart(series, filters) {
   const rows = series || [];
 

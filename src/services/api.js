@@ -58,7 +58,6 @@ export async function updatePassword(token, payload) {
   return res.json();
 }
 
-
 export async function fetchAllUsers(token) {
   const res = await fetch(`${BASE}/admin/users`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -380,7 +379,125 @@ export async function updateCareBulletinStatus(token, payload) {
   return res.json();
 }
 
-// ---- SLA dashboard ----
+export async function fetchTransportAgents(token) {
+  const res = await fetch(`${BASE}/transport/agents`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function createTransportDraft(token) {
+  const res = await fetch(`${BASE}/transport/drafts/create`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function fetchMyTransportDrafts(token) {
+  const res = await fetch(`${BASE}/transport/drafts/mine`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function fetchMyTransportHistory(token) {
+  const res = await fetch(`${BASE}/transport/requests/mine`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function fetchTransportDetail(token, id) {
+  const res = await fetch(`${BASE}/transport/requests/detail?id=${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function addTransportItems(token, payload) {
+  const res = await fetch(`${BASE}/transport/items/add`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+export async function updateTransportItem(token, payload) {
+  const res = await fetch(`${BASE}/transport/items/update`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+export async function deleteTransportItem(token, itemId) {
+  const res = await fetch(`${BASE}/transport/items/delete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ item_id: itemId }),
+  });
+  return res.json();
+}
+
+export async function applyTransportToAll(token, payload) {
+  const res = await fetch(`${BASE}/transport/items/apply-all`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+export async function sendTransportRequest(token, requestId) {
+  const res = await fetch(`${BASE}/transport/requests/send`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ request_id: requestId }),
+  });
+  return res.json();
+}
+
+export async function fetchPendingTransport(token) {
+  const res = await fetch(`${BASE}/admin/transport/pending`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function fetchAllTransport(token) {
+  const res = await fetch(`${BASE}/admin/transport/all`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function decideTransportRequest(token, payload) {
+  const res = await fetch(`${BASE}/admin/transport/decide`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+export async function downloadTransportCsv(token, id, vehicleType) {
+  const qs = vehicleType ? `&vehicle_type=${vehicleType}` : "";
+  const res = await fetch(`${BASE}/admin/transport/export?id=${id}${qs}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `transport_plan_${id}${vehicleType ? `_${vehicleType}` : ""}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 export async function fetchSlaCompanies(token) {
   const res = await fetch(`${BASE}/sla/companies`, {
@@ -446,8 +563,6 @@ export async function fetchSupervisorSlaDashboard(token, { dateFrom, dateTo, des
   return res.json();
 }
 
-// token travels as a query param here (not a header) because the browser's
-// EventSource API cannot attach custom headers to its request.
 export function slaStreamUrl(token, { companyId, dateFrom, dateTo, deskName } = {}) {
   const params = new URLSearchParams();
   params.set('token', token);
@@ -479,8 +594,6 @@ export async function importSlaData(token, file) {
   });
   return res.json();
 }
-
-// ---- Case Assessment / QA Audit ----
 
 export async function lookupAgentForAudit(token, email) {
   const res = await fetch(`${BASE}/case-audits/lookup-agent?email=${encodeURIComponent(email)}`, {

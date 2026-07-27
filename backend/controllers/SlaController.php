@@ -12,7 +12,6 @@ use Firebase\JWT\Key;
 
 class SlaController extends Controller {
 
-   
     public function importTargets(): void {
         $this->requireAdmin();
 
@@ -28,7 +27,6 @@ class SlaController extends Controller {
         }
     }
 
-    
     public function importData(): void {
         $this->requireAdmin();
 
@@ -44,19 +42,16 @@ class SlaController extends Controller {
         }
     }
 
-    
     public function companies(): void {
         $this->requireAuth();
         $this->json(['companies' => (new Company())->all()]);
     }
 
-    
     public function targets(): void {
         $this->requireAdmin();
         $this->json(['targets' => (new SlaTarget())->all()]);
     }
 
-  
     public function saveTarget(): void {
         $this->requireAdmin();
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -96,7 +91,6 @@ class SlaController extends Controller {
         $this->json(['message' => 'Desk linked']);
     }
 
-   
     public function adminDashboard(): void {
         $decoded = $this->requireAuth();
         if ((int) $decoded->role_id !== 3) {
@@ -146,7 +140,6 @@ class SlaController extends Controller {
         $this->json($dashboard);
     }
 
- 
     public function stream(): void {
         
         set_time_limit(0);
@@ -154,7 +147,6 @@ class SlaController extends Controller {
 
         $decoded = $this->requireAuthFromQuery();
 
-        
         @ini_set('implicit_flush', '1');
         ob_implicit_flush(true);
         if (function_exists('apache_setenv')) {
@@ -220,7 +212,6 @@ class SlaController extends Controller {
         }
     }
 
-   
     private function detectBreaches(array $rows): array {
         $breaches = [];
         foreach ($rows as $row) {
@@ -330,7 +321,6 @@ class SlaController extends Controller {
         if ($row['target_abd_rate'] !== null) { $bucket['target_abd_sum'] += (float) $row['target_abd_rate']; }
     }
 
-  
     private function rateSummary(array $bucket, string $name, array $children = []): array {
         $offered  = $bucket['offered'];
         $ansDenom = $offered - $bucket['abandoned_in_sla'];
@@ -387,7 +377,6 @@ class SlaController extends Controller {
             'shortest_hold'    => $pick($flat, 'avg_hold', true),
         ];
     }
-
 
     private function requireAdmin(): object {
         $decoded = $this->requireAuth();

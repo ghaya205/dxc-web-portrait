@@ -1,9 +1,6 @@
 <?php
-// Diagnostic version of setup_case_audits.php.
-// Creates case_audits WITHOUT foreign keys first, then adds each FK one by
-// one so we can see exactly which one fails and why (errno 150 hides this).
 
-$projectRoot = dirname(__DIR__, 2); // adjust if you run this from elsewhere
+$projectRoot = dirname(__DIR__, 2); 
 $envFile = $projectRoot . '/.env';
 
 if (file_exists($envFile)) {
@@ -27,7 +24,6 @@ try {
     die("DB connection failed: " . $e->getMessage() . "\n");
 }
 
-// 1) Show the actual column defs we need to match.
 echo "--- users.id ---\n";
 print_r($pdo->query("SHOW COLUMNS FROM users WHERE Field = 'id'")->fetch());
 echo "--- desks.id ---\n";
@@ -35,10 +31,8 @@ print_r($pdo->query("SHOW COLUMNS FROM desks WHERE Field = 'id'")->fetch());
 echo "--- engines ---\n";
 print_r($pdo->query("SELECT TABLE_NAME, ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('users','desks')")->fetchAll());
 
-// 2) Drop any half-created table from the failed attempt.
 $pdo->exec("DROP TABLE IF EXISTS case_audits");
 
-// 3) Create WITHOUT foreign keys first.
 $pdo->exec("CREATE TABLE case_audits (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     agent_id        INT NOT NULL,
@@ -59,7 +53,6 @@ $pdo->exec("CREATE TABLE case_audits (
 ) ENGINE=InnoDB");
 echo "\ncase_audits created WITHOUT foreign keys.\n";
 
-// 4) Add each FK separately so the error points at the right one.
 $fks = [
     'fk_case_audits_agent'   => "ALTER TABLE case_audits ADD CONSTRAINT fk_case_audits_agent   FOREIGN KEY (agent_id)   REFERENCES users(id) ON DELETE CASCADE",
     'fk_case_audits_desk'    => "ALTER TABLE case_audits ADD CONSTRAINT fk_case_audits_desk    FOREIGN KEY (desk_id)    REFERENCES desks(id) ON DELETE CASCADE",

@@ -211,8 +211,6 @@ export default function SlaDashboardView({ mode, token }) {
 
   const { dateFrom, dateTo } = computeDateRange(filters);
 
-  // Real Time always shows *today* only — it must never inherit the
-  // Year/Month/Week/Day filters used by Historical Data.
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
@@ -230,7 +228,7 @@ export default function SlaDashboardView({ mode, token }) {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [mode, token, filters.companyId, filters.deskName, dateFrom, dateTo]);
 
   useEffect(() => {
@@ -238,7 +236,7 @@ export default function SlaDashboardView({ mode, token }) {
     if (mode === 'admin') {
       fetchSlaCompanies(token).then((res) => setCompanies(res.companies || []));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   useEffect(() => {
@@ -270,14 +268,14 @@ export default function SlaDashboardView({ mode, token }) {
       }
     };
 
-    poll(); // fetch immediately, then keep refreshing
+    poll(); 
     const intervalId = setInterval(poll, 4000);
 
     return () => {
       cancelled = true;
       clearInterval(intervalId);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [tab, token, mode, filters.companyId, filters.deskName, todayStr]);
 
   const overview = data?.overview;

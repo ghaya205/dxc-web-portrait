@@ -81,7 +81,6 @@ class DeskController extends Controller {
             'chat_questions' => $data['chat_questions'] ?? [],
         ];
 
-        
         if (array_key_exists('company_id', $data)) {
             $updateData['company_id'] = !empty($data['company_id']) ? (int) $data['company_id'] : null;
         }

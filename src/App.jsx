@@ -19,6 +19,8 @@ import DocumentsPage       from './pages/documents/DocumentsPage';
 import InsurancePage       from './pages/insurance/InsurancePage';
 import QualityAssessment   from './pages/quality/QualityAssessment';
 import AgentDashboard      from './pages/agent/AgentDashboard';
+import TransportPage      from './pages/transport/TransportPage';
+import AdminTransportPage from './pages/transport/AdminTransportPage';
 
 const ROLE_HOME = { 1: '/agent/requests', 2: '/supervisor/dashboard', 3: '/admin/dashboard' };
 
@@ -66,6 +68,7 @@ function AppRoutes() {
       <Route path="/supervisor/opportunities"  element={<RoleRoute allowedRoleId={2}><OpportunitiesPage /></RoleRoute>} />
       <Route path="/supervisor/documents"      element={<RoleRoute allowedRoleId={2}><DocumentsPage /></RoleRoute>} />
       <Route path="/supervisor/insurance"      element={<RoleRoute allowedRoleId={2}><InsurancePage /></RoleRoute>} />
+      <Route path="/supervisor/transport"      element={<RoleRoute allowedRoleId={2}><TransportPage /></RoleRoute>} />
       <Route path="/supervisor/profile"        element={<RoleRoute allowedRoleId={2}><ProfilePage /></RoleRoute>} />
       <Route path="/supervisor/settings"       element={<RoleRoute allowedRoleId={2}><SettingsPage /></RoleRoute>} />
 
@@ -79,6 +82,7 @@ function AppRoutes() {
       <Route path="/admin/opportunities"  element={<RoleRoute allowedRoleId={3}><OpportunitiesPage /></RoleRoute>} />
       <Route path="/admin/documents"      element={<RoleRoute allowedRoleId={3}><DocumentsPage /></RoleRoute>} />
       <Route path="/admin/insurance"      element={<RoleRoute allowedRoleId={3}><InsurancePage /></RoleRoute>} />
+      <Route path="/admin/transport"      element={<RoleRoute allowedRoleId={3}><AdminTransportPage /></RoleRoute>} />
       <Route path="/admin/profile"        element={<RoleRoute allowedRoleId={3}><ProfilePage /></RoleRoute>} />
       <Route path="/admin/settings"       element={<RoleRoute allowedRoleId={3}><SettingsPage /></RoleRoute>} />
 

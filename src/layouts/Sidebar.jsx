@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Settings, LogOut, Shield, Users, FileText,
-  Award, Briefcase, Folder, HeartPulse, User as UserIcon, ListChecks, ClipboardCheck,
+  Award, Briefcase, Folder, HeartPulse, User as UserIcon, ListChecks, ClipboardCheck, Bus,
 } from 'lucide-react';
 import dxcLogo from '../assets/dxclogo.png';
 
@@ -38,6 +38,7 @@ const roleMenus = {
         { icon: Briefcase,   label: 'Opportunities',   path: '/supervisor/opportunities' },
         { icon: Folder,      label: 'My Documents',    path: '/supervisor/documents' },
         { icon: HeartPulse,  label: 'Insurance',       path: '/supervisor/insurance' },
+        { icon: Bus,         label: 'Transport',       path: '/supervisor/transport' },
       ],
     },
     {
@@ -67,6 +68,7 @@ const roleMenus = {
         { icon: Users,  label: 'User Approvals', path: '/admin/user-approvals' },
         { icon: Shield, label: 'Management',     path: '/admin/management' },
         { icon: ListChecks, label: 'SLA Queues', path: '/admin/sla-queues' },
+        { icon: Bus, label: 'Transport Approvals', path: '/admin/transport' },
         { icon: UserIcon, label: 'Profile',      path: '/admin/profile' },
         { icon: Settings, label: 'Settings',     path: '/admin/settings' },
       ],

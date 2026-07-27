@@ -38,8 +38,6 @@ export default function Navbar({ onToggleSidebar, pageTitle }) {
         <span>{pageTitle ?? 'Dashboard'}</span>
       </div>
 
-      
-
         <div
           className="dash-navbar-avatar"
           role="button"

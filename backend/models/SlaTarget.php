@@ -26,7 +26,6 @@ class SlaTarget {
         return $stmt->fetch();
     }
 
-   
     public static function parsePercent(?string $raw): ?float {
         if ($raw === null) return null;
         $raw = trim($raw);
@@ -42,7 +41,6 @@ class SlaTarget {
         return ($raw === '' || !is_numeric($raw)) ? null : (int) $raw;
     }
 
-  
     public function upsert(array $row): void {
         $queueName = trim($row['queue_name'] ?? '');
         if ($queueName === '') return;
@@ -103,7 +101,6 @@ class SlaTarget {
         return $stmt->execute([$id]);
     }
 
-    /** Used by the "Add Queue" manual form (percents come in as 0-100, not 0-1). */
     public function createOrUpdateManual(array $data): void {
         $pct = function ($v) {
             if ($v === null || $v === '') return null;

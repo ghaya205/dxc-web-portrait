@@ -204,15 +204,42 @@ function PersonalTab({ profile, token, onUpdated }) {
     phone: profile?.phone ?? '',
     address: profile?.address ?? '',
     governorate: profile?.governorate ?? '',
+    latitude: profile?.latitude ?? '',
+    longitude: profile?.longitude ?? '',
     marital_status: profile?.marital_status ?? '',
     child_number: profile?.child_number ?? '',
   });
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   function set(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function handleLocate() {
+    if (!navigator.geolocation) {
+      setErr('Geolocation is not supported by this browser.');
+      return;
+    }
+    setLocating(true);
+    setErr('');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setForm((prev) => ({
+          ...prev,
+          latitude: pos.coords.latitude.toFixed(7),
+          longitude: pos.coords.longitude.toFixed(7),
+        }));
+        setLocating(false);
+      },
+      () => {
+        setErr('Could not get your location. Please allow location access.');
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   }
 
   async function handleSave(e) {
@@ -254,6 +281,17 @@ function PersonalTab({ profile, token, onUpdated }) {
         <div className="profile-field">
           <label>Residential Address</label>
           <input className="profile-input" type="text" value={form.address} onChange={(e) => set('address', e.target.value)} />
+        </div>
+
+        <div className="profile-field">
+          <label>Exact GPS Location</label>
+          <div className="profile-field-row">
+            <input className="profile-input" type="text" placeholder="Latitude" value={form.latitude} onChange={(e) => set('latitude', e.target.value)} />
+            <input className="profile-input" type="text" placeholder="Longitude" value={form.longitude} onChange={(e) => set('longitude', e.target.value)} />
+            <button type="button" className="profile-save-btn profile-save-btn--outline" onClick={handleLocate} disabled={locating}>
+              {locating ? 'Locating…' : 'Use my location'}
+            </button>
+          </div>
         </div>
 
         <div className="profile-field-row">

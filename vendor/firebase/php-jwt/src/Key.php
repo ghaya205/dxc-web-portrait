@@ -9,10 +9,7 @@ use TypeError;
 
 class Key
 {
-    /**
-     * @param string|OpenSSLAsymmetricKey|OpenSSLCertificate $keyMaterial
-     * @param string $algorithm
-     */
+    
     public function __construct(
         #[\SensitiveParameter] private $keyMaterial,
         private string $algorithm
@@ -34,19 +31,11 @@ class Key
         }
     }
 
-    /**
-     * Return the algorithm valid for this key
-     *
-     * @return string
-     */
     public function getAlgorithm(): string
     {
         return $this->algorithm;
     }
 
-    /**
-     * @return string|OpenSSLAsymmetricKey|OpenSSLCertificate
-     */
     public function getKeyMaterial()
     {
         return $this->keyMaterial;
